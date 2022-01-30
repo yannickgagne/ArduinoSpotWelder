@@ -31,7 +31,7 @@ void draw(void) {
   u8g.setPrintPos(20, 20);
   u8g.print(potVal);
   u8g.undoScale();
-  u8g.drawStr( 20, 60, "Miliseconds");
+  u8g.drawStr( 20, 60, "Milliseconds");
 
 }
 
