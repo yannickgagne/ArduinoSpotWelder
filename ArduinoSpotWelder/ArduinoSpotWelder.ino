@@ -21,11 +21,12 @@ int inPin = 2;
 int triggerSwitch = 0;
 int ssrPin = 3;
 int stringWidth = 0;
+unsigned long lastMs = 0;
 
 void draw(void) {
   // graphic commands to redraw the complete screen
   u8g.setFont(u8g_font_unifont);
-  u8g.drawStr( 14, 10, "YG Spot Welder"); // rename to personalise ;)
+  u8g.drawStr( 12, 10, "YG Spot Welder"); // rename to personalise ;)
   u8g.setScale2x2();
   u8g.setPrintPos(20, 20);
   u8g.print(potVal);
@@ -34,7 +35,13 @@ void draw(void) {
 
 }
 
+void triggerCallback(void) {
+  triggerSwitch = HIGH;
+}
+
 void setup(void) {
+  delay(2500); //sanity wait
+  
   // flip screen, if required
   // u8g.setRot180();
 
@@ -58,30 +65,32 @@ void setup(void) {
   Serial.begin(9600);
   pinMode(inPin, INPUT);
   pinMode(ssrPin, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(inPin), triggerCallback, FALLING);
+  Serial.println(">>> MCU Ready <<<");
 }
 
 void loop(void) {
-  // picture loop
-  u8g.firstPage();
-  do {
-    draw();
-  } while ( u8g.nextPage() );
+  if((millis() - lastMs) > 500) {
+    // picture loop
+    u8g.firstPage();
+    do {
+      draw();
+    } while ( u8g.nextPage() );
 
-  // rebuild the picture after some delay
-  //delay(50);
-
-  potVal = analogRead(potPin);                // reads the value of the potentiometer (value between 0 and 1023)
-  potVal = map(potVal, 0, 1023, 10, 750);     // scale it to use it get the right time (value between 10 and 500)
-
-  triggerSwitch = digitalRead(inPin);
-
-  //Serial.println(triggerSwitch);
+    //Read pot value and map it
+    potVal = analogRead(potPin);                // reads the value of the potentiometer (value between 0 and 1023)
+    potVal = map(potVal, 0, 1023, 10, 750);     // scale it to use it get the right time (value between 10 and 750)
+  }
+  //triggerSwitch = digitalRead(inPin);
 
   if (triggerSwitch == HIGH) {
+    //Serial.print("SSR Start\r\n");
     digitalWrite(ssrPin, HIGH);
     delay(potVal);
     digitalWrite(ssrPin, LOW);
+    //Serial.print("SSR Stop\r\n");
     delay(1000);
+    triggerSwitch = LOW;
   }
 
 }
