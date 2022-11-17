@@ -39,6 +39,25 @@ void triggerCallback(void) {
   triggerSwitch = HIGH;
 }
 
+int smoothAnalogRead(int pin) {
+  int i;
+  int value = 0;
+  int numReadings = 20;
+
+  for (i = 0; i < numReadings; i++){
+    // Read sensor data.
+    value = value + analogRead(pin);
+
+    // 1ms pause adds more stability between reads.
+    delay(1);
+  }
+
+  // Take an average of all the readings.
+  value = value / numReadings;
+
+  return value;
+}
+
 void setup(void) {
   delay(2500); //sanity wait
   
@@ -78,7 +97,7 @@ void loop(void) {
     } while ( u8g.nextPage() );
 
     //Read pot value and map it
-    potVal = analogRead(potPin);                // reads the value of the potentiometer (value between 0 and 1023)
+    potVal = smoothAnalogRead(potPin);          // reads the value of the potentiometer (value between 0 and 1023)
     potVal = map(potVal, 0, 1023, 10, 750);     // scale it to use it get the right time (value between 10 and 750)
   }
   //triggerSwitch = digitalRead(inPin);
